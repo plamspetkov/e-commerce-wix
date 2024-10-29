@@ -10,10 +10,10 @@ const Filter = () => {
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>
   ) => {
-    // const { name, value } = e.target;
-    // const params = new URLSearchParams(searchParams);
-    // params.set(name, value);
-    // replace(`${pathname}?${params.toString()}`);
+    const { name, value } = e.target;
+    const params = new URLSearchParams(searchParams);
+    params.set(name, value);
+    replace(`${pathname}?${params.toString()}`);
   };
 
   return (
@@ -31,14 +31,14 @@ const Filter = () => {
         </select>
         <input
           type="text"
-          name="min"
+          name="minPrice"
           placeholder="min price"
           className="text-xs rounded-2xl pl-2 w-24 ring-1 ring-gray-400"
           onChange={handleFilterChange}
         />
         <input
           type="text"
-          name="max"
+          name="maxPrice"
           placeholder="max price"
           className="text-xs rounded-2xl pl-2 w-24 ring-1 ring-gray-400"
           onChange={handleFilterChange}
@@ -49,9 +49,9 @@ const Filter = () => {
           className="py-2 px-4 rounded-2xl text-xs font-medium bg-[#EBEDED]"
           onChange={handleFilterChange}
         >
-          <option>Category</option>
-          <option value="">New Arrival</option>
-          <option value="">Popular</option>
+          <option value="">Category</option>
+          <option value="new-arrival">New Arrival</option>
+          <option value="popular">Popular</option>
         </select>
         <select
           name=""

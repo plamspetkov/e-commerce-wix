@@ -4,8 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 import DOMPurify from "isomorphic-dompurify";
+import Pagination from "./Pagination";
 
-const PRODUCT_PER_PAGE = 20;
+const PRODUCT_PER_PAGE = 8;
 
 const ProductList = async ({
   categoryId,
@@ -24,23 +25,38 @@ const ProductList = async ({
     return <p>No category selected.</p>;
   }
 
+  console.log("Search Parameters:", searchParams);
+
   try {
-    const res = await wixClient.products
+    let productQuery = await wixClient.products
       .queryProducts()
+      .startsWith("name", searchParams?.name || "")
       .eq("collectionIds", categoryId)
+      .hasSome("productType", [searchParams?.type || "physical", "digital"])
+      .gt("priceData.price", parseFloat(searchParams?.minPrice) || 0)
+      .lt("priceData.price", parseFloat(searchParams?.maxPrice) || 999999999)
       .limit(limit || PRODUCT_PER_PAGE)
-      .find();
+      .skip(
+        searchParams?.page
+          ? parseInt(searchParams.page) * (limit || PRODUCT_PER_PAGE)
+          : 0
+      );
 
-    // console.log("res", res.items[0].priceData?.formatted?.price);
+    if (searchParams?.sort) {
+      const [sortType, sortBy] = searchParams.sort.split(" ");
 
-    if (!res.items || res.items.length === 0) {
-      console.log("No products found for this category.");
-      return <p>No products found.</p>;
+      if (sortType === "asc") {
+        productQuery = productQuery.ascending(sortBy);
+      } else if (sortType === "desc") {
+        productQuery = productQuery.descending(sortBy);
+      }
     }
+
+    const res = await productQuery.find();
 
     return (
       <div
-        // key={categoryId}
+        key={categoryId}
         className="mt-12 flex gap-8 gap-y-16 justify-between flex-wrap"
       >
         {res.items.map((product: products.Product) => (
@@ -90,6 +106,11 @@ const ProductList = async ({
             </button>
           </Link>
         ))}
+        <Pagination
+          currentPage={res.currentPage || 0}
+          hasPrev={res.hasPrev()}
+          hasNext={res.hasNext()}
+        />
       </div>
     );
   } catch (error) {
